@@ -1,0 +1,10 @@
+{
+  "name": "shop-system",
+  "version": "1.0.0",
+  "description": "system for a shop web project",
+  "main": "index.js",
+  "repository": "https://github.com/gaohui970561208/shop-system.git",
+  "author": "gaohui",
+  "license": "MIT",
+  "private": false
+}
