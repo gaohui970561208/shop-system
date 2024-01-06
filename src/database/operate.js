@@ -1,7 +1,7 @@
 import pool from "./config";
 
 //将结果以对象数组返回
-const getObjList =( sql , ...params )=>{
+export const getObjList =( sql , ...params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
@@ -20,7 +20,7 @@ const getObjList =( sql , ...params )=>{
     });
 };
 //返回一个对象
-const getObj=( sql , ...params )=>{
+export const getObj=( sql , ...params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
@@ -40,7 +40,7 @@ const getObj=( sql , ...params )=>{
 };
 
 //返回单个查询结果
-const getResult=(sql , ...params )=>{
+export const getResult=(sql , ...params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
@@ -65,7 +65,7 @@ const getResult=(sql , ...params )=>{
 }
 
 //执行代码，返回执行结果
-const execute=(sql , ...params )=>{
+export const execute=(sql , ...params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
@@ -84,8 +84,8 @@ const execute=(sql , ...params )=>{
     });
 }
 export default {
-    getObj: getObj,
-    getObjList: getObjList,
-    getResult: getResult,
-    execute: execute
+    getObj,
+    getObjList,
+    getResult,
+    execute,
 }
