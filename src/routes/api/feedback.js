@@ -18,4 +18,4 @@ router.post(`/sendFeedback`, jsonParser, async (req, res, next) => {
     })
 })
 
-module.exports = router;
+export default router;

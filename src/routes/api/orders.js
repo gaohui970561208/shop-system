@@ -279,4 +279,4 @@ router.delete(`/deleteOrder`, jsonParser, async (req, res, next) => {
     })
 })
 
-module.exports = router;
+export default router;

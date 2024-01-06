@@ -360,4 +360,4 @@ router.get(`/getClassifyList`, jsonParser, async (req, res, next) => {
     })
 })
 
-module.exports = router;
+export default router;
