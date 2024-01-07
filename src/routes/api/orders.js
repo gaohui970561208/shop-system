@@ -4,7 +4,7 @@ const jsonParser = bodyParser.json();
 const router = express.Router();
 import { getObj, getObjList, execute } from '../../database/operate';
 import { testLogin } from '../../services/user';
-import { addOrder } from '../../services/order';
+import { addOrder, getOrderListForShop, getOrderListForUser, getOrderInfo } from '../../services/order';
 
 //创建订单
 router.post('/createOrder', jsonParser, async (req, res, next) => {
@@ -29,88 +29,56 @@ router.post('/createOrder', jsonParser, async (req, res, next) => {
 
 //获取订单列表
 router.get(`/getOrderList`, jsonParser, async (req, res, next) => {
-    if(!req.query || Object.keys(req.query).length === 0 || !req.query.shopId) {
-        res.json({code: -1, msg: "服务器繁忙"});
+    const sessionUserInfo = testLogin(req.session);
+    if (!sessionUserInfo) {
+        res.json({code: 401, msg: "当前用户未登录"});
         return;
     }
     const shopId = req.query.shopId;
-    getObjList(`select * from orders where shopId=${shopId}`).then(data => {
-        data.forEach(element => {
-            element.productList = JSON.parse(element.productList);
-            element.address = JSON.parse(element.address);
-        })
+    try {
         res.json({code: 0, msg: "获取成功", data: data});
-    }).catch(error => {
+    } catch (error) {
         res.json({code: -1, msg: "获取失败", data: error});
-    })
+    }
+    const data = await getOrderListForShop(shopId);
 })
 
 
 //获取订单列表
 router.get(`/getOrderListInfo`, jsonParser, async (req, res, next) => {
-    if(!req.query || Object.keys(req.query).length === 0 || !req.query.userId) {
-        res.json({code: -1, msg: "服务器繁忙"});
+    const sessionUserInfo = testLogin(req.session);
+    if (!sessionUserInfo) {
+        res.json({code: 401, msg: "当前用户未登录"});
         return;
     }
-    const userId = req.query.userId;
-    const status = req.query.status;
-    let sqlStr = `select * from orders where userId=${userId} order by orderId desc`;
-    if(status != -1) {
-        sqlStr += ` and status=${status}`
-    }
-    getObjList(sqlStr).then(data => {
-        data.forEach(element => {
-            element.productList = JSON.parse(element.productList);
-        })
+    const userId = sessionUserInfo.id;
+    const status = req.query.status || null;
+    try {
+        const data = await getOrderListForUser(userId, status);
         res.json({code: 0, msg: "获取成功", data: data});
-    }).catch(error => {
+    } catch (error) {
         res.json({code: -1, msg: "获取失败", data: error});
-    })
+    }
 })
 
 //获取订单详情
 router.get(`/orderInfo`, jsonParser, async (req, res, next) => {
+    const sessionUserInfo = testLogin(req.session);
+    if (!sessionUserInfo) {
+        res.json({code: 401, msg: "当前用户未登录"});
+        return;
+    }
     if(!req.query || Object.keys(req.query).length === 0 || !req.query.orderId) {
-        res.json({code: -1, msg: "服务器繁忙"});
+        res.json({code: -1, msg: "暂无该订单信息"});
         return;
     }
     const orderId = req.query.orderId;
-    getObj(`select * from orders where orderId=${orderId}`).then(data => {
-        let orderData = JSON.parse(JSON.stringify(data));
-        if(!orderData || Object.keys(orderData).length === 0) {
-            res.json({code: 1, msg: "未找到此订单"});
-            return;
-        }
-        //获取订单中的商品信息
-        const categoryList = JSON.parse(orderData.productList);
-        orderData.productList = JSON.parse(orderData.productList);
-        orderData.address = JSON.parse(orderData.address);
-        let sqlStr = `select * from shops,products,category where shops.shopId=products.shopId and products.productId=category.productId and (`;
-        categoryList.forEach((element, index) => {if(index < categoryList.length - 1) {
-                sqlStr += `category.categoryId=${element.categoryId} or `;
-            } else {
-                sqlStr += `category.categoryId=${element.categoryId})`;
-            }
-        });
-        orderData.productList = [];
-        getObjList(sqlStr).then(pList => {
-            //获取到列表之后添加响应数量
-            pList.forEach(e => {
-                categoryList.forEach(el => {
-                    if(parseInt(el.categoryId) === parseInt(e.categoryId)) {
-                        let eData = e;
-                        eData.productNum = el.productNum;
-                        orderData.productList.push(eData);
-                    }
-                })
-            })
-            res.json({code: 0, msg: "获取成功", data: orderData});
-        }).catch(error => {
-            res.json({code: -1, msg: "获取失败", data: error});
-        })
-    }).catch(error => {
+    try {
+        const orderData = await getOrderInfo(orderId);
+        res.json({code: 0, msg: "获取成功", data: orderData});
+    } catch (error) {
         res.json({code: -1, msg: "获取失败", data: error});
-    })
+    }
 })
 
 //订单支付

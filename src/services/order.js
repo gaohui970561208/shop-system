@@ -66,3 +66,59 @@ export const testSockNum = async (list) => {
     })
     return fullStatus;
 } 
+// 后台获取订单列表
+export const getOrderListForShop = async (shopId) => {
+    const sql = `select * from orders where shopId=${shopId}`;
+    const list = await getObjList(sql)
+    list.forEach(element => {
+        element.productList = JSON.parse(element.productList);
+        element.address = JSON.parse(element.address);
+    })
+    return list.map((e) => {
+        let info = { ...e };
+        info.productList = JSON.parse(e.productList);
+        info.address = JSON.parse(e.address);
+        return info;
+    })
+}
+export const getOrderListForUser = async (userId, status) => {
+    let sqlStr = `select * from orders where userId=${userId} order by orderId desc`;
+    if(status != -1) {
+        sqlStr += ` and status=${status}`
+    }
+    const list = await getObjList(sqlStr)
+    return list.map((e) => {
+        let info = { ...e };
+        info.productList.JSON.parse(e.productList);
+        return info;
+    })
+}
+export const getOrderInfo = async (orderId) => {
+    const sqlStr = `select * from orders where orderId=${orderId}`;
+    let orderData = await getObj(sqlStr);
+    if(!orderData || Object.keys(orderData).length === 0) {
+        res.json({code: 1, msg: "未找到此订单"});
+        return;
+    }
+    //获取订单中的商品信息
+    const categoryList = JSON.parse(orderData.productList);
+    orderData.productList = JSON.parse(orderData.productList);
+    orderData.address = JSON.parse(orderData.address);
+    const cateSql = categoryList.map((e) => {
+        return `category.categoryId=${e.categoryId}`;
+    }).join(' or ');
+    let productSql = `select * from shops,products,category where shops.shopId=products.shopId and products.productId=category.productId and (${cateSql})`;
+    const list = [];
+    const productList = await getObjList(productSql);
+    productList.forEach((product) => {
+        categoryList.forEach((cate) => {
+            if(parseInt(cate.categoryId) === parseInt(product.categoryId)) {
+                let eData = product;
+                eData.productNum = el.productNum;
+                list.push(eData);
+            }
+        })
+    })
+    orderData.productList = list;
+    return orderData;
+}
