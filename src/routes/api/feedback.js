@@ -2,20 +2,23 @@ import express from 'express';
 import bodyParser from 'body-parser';
 const jsonParser = bodyParser.json();
 const router = express.Router();
-import { getObj, getObjList, execute } from '../../database/operate';
+import { addFeedBack } from '../../services/feedback';
+import { testLogin } from '../../services/user';
 
 router.post(`/sendFeedback`, jsonParser, async (req, res, next) => {
-    if(!req.query || Object.keys(req.query).length === 0 || !req.query.userId) {
-        res.json({code: -1, msg: "服务器繁忙"});
+    const sessionUserInfo = testLogin(req.session);
+    if (!sessionUserInfo) {
+        res.json({code: 401, msg: "当前用户未登录"});
+        return;
     }
-    const userId = req.query.userId;
+    const userId = sessionUserInfo.id;
     const { feedback } = req.body;
-    let sqlStr = `insert into feedback (userId, feedback) values (${userId}, "${feedback}")`
-    execute(sqlStr).then(data => {
+    try {
+        const data = await addFeedBack(userId, feedback);
         res.json({code: 0, msg: "提交成功,感谢您的反馈"});
-    }).catch(error => {
+    } catch (error) {
         res.json({ode: -1, msg: "提交失败", data: error});
-    })
+    }
 })
 
 export default router;

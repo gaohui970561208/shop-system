@@ -22,7 +22,7 @@ export const getCartListByUser = async (userId) => {
 }
 // 删除购物车内容
 export const deleteCartList = async (userId, productList) => {
-    const cardData = getObj(`select shoppingCart from users where userId=${userId}`)
+    const cardData = await getObj(`select shoppingCart from users where userId=${userId}`)
     const shoppingCartData = JSON.parse(JSON.stringify(cardData));
     let list = JSON.parse(shoppingCartData.shoppingCart);
     list.forEach((element, index) => {

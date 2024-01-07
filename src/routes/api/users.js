@@ -1,6 +1,5 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { getObj, getObjList, execute, getResult } from '../../database/operate';
 import { testLogin, encryptUserInfo, decryptUserInfo, testUser, getUserInfo, addUser, updateUser } from '../../services/user';
 import { getCartListByUser, deleteCartList } from '../../services/product';
 const jsonParser = bodyParser.json();
@@ -222,25 +221,6 @@ router.post(`/deleteShoppingCart`, jsonParser, async (req, res, next) => {
     } catch (error) {
         res.json({code: 0, msg: "服务器繁忙", data: error});
     }
-    // getObj(`select shoppingCart from users where userId=${userId}`).then(data => {
-    //     const shoppingCartData = JSON.parse(JSON.stringify(data));
-    //     let list = JSON.parse(shoppingCartData.shoppingCart);
-    //     list.forEach((element, index) => {
-    //         shopList.forEach(e => {
-    //             if(element.categoryId === e.categoryId) {
-    //                 list.splice(index, 1);
-    //             }
-    //         })
-    //     })
-    //     const newShoppingStr = JSON.stringify(list);
-    //     execute(`update users set shoppingCart='${newShoppingStr}' where userId=${userId}`).then(reqData => {
-    //         res.json({code: 0, msg: "删除成功", data: reqData});
-    //     }).catch(error => {
-    //         res.json({code: 0, msg: "服务器繁忙", data: error});
-    //     })
-    // }).catch(error => {
-    //     res.json({code: 0, msg: "服务器繁忙", data: error});
-    // })
 })
 
 module.exports = router;

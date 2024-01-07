@@ -3,63 +3,28 @@ import bodyParser from 'body-parser';
 const jsonParser = bodyParser.json();
 const router = express.Router();
 import { getObj, getObjList, execute } from '../../database/operate';
+import { testLogin } from '../../services/user';
+import { addOrder } from '../../services/order';
 
 //创建订单
 router.post('/createOrder', jsonParser, async (req, res, next) => {
-    if(!req.query || Object.keys(req.query).length === 0 || !req.query.userId) {
-        res.json({code: -1, msg: "服务器繁忙"});
+    const sessionUserInfo = testLogin(req.session);
+    if (!sessionUserInfo) {
+        res.json({code: 401, msg: "当前用户未登录"});
         return;
     }
-    const userId = req.query.userId;
-    // const reqData = req.body;
-    const reqData = {
-        status: req.body.status,
-        address: JSON.stringify(req.body.address),
-        shopId: req.body.shopId,
-        productList: JSON.stringify(req.body.productList),
-        paymentStatus: req.body.paymentStatus,
-        price: req.body.price,
-        payType: req.body.payType
-    };
-    //创建订单前，查询当前规格商品库存是否满足，若不满足，则提示用户当前商品库存不足
-    let productList = []
-    let sqlStr = `select * from category where `
-    req.body.productList.forEach((element, index) => {
-        if(index < req.body.productList.length - 1) {
-            sqlStr += `categoryId=${element.categoryId} or `;
-        } else {
-            sqlStr += `categoryId=${element.categoryId}`;
-        }
-        productList.push(reqData);
-    })
-    getObjList(sqlStr).then(data => {
-        let fullStatus=true;//库存是否充足
-        productList.forEach(element => {
-            data.forEach(e => {
-                if(parseInt(element.categoryId) === parseInt(e.categoryId)) {
-                    if(parseInt(element.productNum) > parseInt(e.cateNum)) {
-                        fullStatus = fasle;
-                    } 
-                }
-            })
-        })
-        if(fullStatus) {
-            execute(`insert into orders (status,shopId,address,productList,paymentStatus,userId,price,payType) values (${reqData.status},${reqData.shopId},'${reqData.address}','${reqData.productList}',${reqData.paymentStatus},${userId},${reqData.price},${reqData.payType})`).then(data => {
-                //成功之后从库存中减去相应的数量
-                productList.forEach(element => {
-                    execute(`update category set cateNum=(cateNum-${parseInt(element.productNum)}) where categoryId=${element.categoryId}`);
-                })
-                res.json({code: 0, msg: "下单成功", data: data});
-            }).catch(error => {
-                res.json({code: -1, msg: "下单失败", data: error});
-            })
-        } else {
+    const userId = sessionUserInfo.id;
+    try {
+        const orderData = addOrder(userId, req.body);
+        const { status, data } = orderData;
+        if (status === -2) {
             res.json({code: 1, msg: "当前商品库存不足"});
+            return;
         }
-    }).catch(error => {
+        res.json({code: 0, msg: "下单成功", data: data});
+    } catch (error) {
         res.json({code: -1, msg: "下单失败", data: error});
-    })
-    
+    }    
 }),
 
 //获取订单列表
