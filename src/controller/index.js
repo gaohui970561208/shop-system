@@ -18,6 +18,10 @@ app.use(session({
     secret: 'shop syetem',
     resave: true,
     saveUninitialized: false,
+    cookie: { 
+        secure: false, 
+        maxAge: 86400000, //登录信息缓存24小时  24 * 60 * 60 * 1000
+    },
 }));
 //声明使用中间件
 app.use(logger('dev'));

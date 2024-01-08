@@ -134,16 +134,8 @@ router.post(`/updateProduct`, jsonParser, async (req, res, next) => {
         res.json({code: -1, msg: "未找到该商品"});
     }
     const productId = req.query.productId;
-    const body = {
-        productName: req.body.productName,
-        productImg: req.body.productImg,
-        productDescript: req.body.productDescript,
-        productDesList: req.body.productDesList,
-        classifyId: req.body.classifyId,
-        defaultCategoryId: req.body.defaultCategoryId
-    };
     try {
-        const result = await updateProduct(productId, body);
+        const result = await updateProduct(productId, req.body);
         res.json({code: 0, msg: "修改成功", data: result});
     } catch (error) {
         console.error(error);

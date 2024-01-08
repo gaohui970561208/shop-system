@@ -12,17 +12,7 @@ export const addOrder = async (userId, body) => {
         payType: body.payType
     };
     //创建订单前，查询当前规格商品库存是否满足，若不满足，则提示用户当前商品库存不足
-    let productList = []
-    let sqlStr = `select * from category where `
-    body.productList.forEach((element, index) => {
-        if(index < body.productList.length - 1) {
-            sqlStr += `categoryId=${element.categoryId} or `;
-        } else {
-            sqlStr += `categoryId=${element.categoryId}`;
-        }
-        productList.push(reqData);
-    })
-    const fullStatus = await testSockNum(productList);
+    const fullStatus = await testSockNum(body.productList);
     if (!fullStatus) {
         return { status: -2 }; // -2 代表库存不足
     }
@@ -38,9 +28,9 @@ export const addOrder = async (userId, body) => {
     }
     const sql = insertSql('orders', insertData);
     const data = await execute(sql);
-    productList.forEach(async (element) => {
+    body.productList.forEach(async (element) => {
         const num = parseInt(element.productNum) || 1;
-        const sqlStr = updateSql('category', { cateNum: `(cateNum-${num})` }, { categoryId: element.categoryId });
+        const sqlStr = `update category set cateNum=cateNum-${num} where categoryId=${element.categoryId}`;
         await execute(sqlStr);
     })
     return { status: 0, data };
@@ -111,7 +101,7 @@ export const getOrderInfo = async (orderId) => {
         categoryList.forEach((cate) => {
             if(parseInt(cate.categoryId) === parseInt(product.categoryId)) {
                 let eData = product;
-                eData.productNum = el.productNum;
+                eData.productNum = cate.productNum;
                 list.push(eData);
             }
         })

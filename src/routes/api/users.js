@@ -45,6 +45,7 @@ router.post(`/login`, jsonParser, async (req,res,next) => {
         return;
     }
     const userInfo = await testUser(req.body.username);
+    console.log('userInfo', userInfo);
     if(!userInfo || Object.keys(userInfo).length === 0) {
         res.json({code: -1, msg: "用户名或密码错误"});
         return;

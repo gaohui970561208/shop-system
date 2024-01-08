@@ -16,5 +16,5 @@ export const updateSql = (database, updateData, whereData, whereUnit = 'AND') =>
         const str = typeof updateData[e] === 'string' ? `'${updateData[e]}'` : updateData[e];
         return `${e}=${whereData[e]}`
     }).join(` ${whereUnit} `);
-    return `update users set ${updateStr} where ${whereStr}`
+    return `update ${database} set ${updateStr} where ${whereStr}`
 }

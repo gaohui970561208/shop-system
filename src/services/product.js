@@ -67,14 +67,15 @@ export const addProdut = async (shopId, body) => {
         productDescript: body.productDescript,
         productDesList: body.productDesList.join(" && "),
         classifyId: body.classifyId,
-        defaultCategoryId: body.defaultCategoryId,
+        shopId: shopId,
         status: body.status,
-        categoryList: body.categoryList
+        defaultCategoryId: body.defaultCategoryId,
     };
+    const categoryList = body.categoryList;
     //对数据进行处理，首先进行商品添加
     const sql = insertSql('products', productData);
     const result = await execute(sql);
-    const whereSql = productData.categoryList.map((e) => {
+    const whereSql = categoryList.map((e) => {
         return `categoryId=${e.categoryId}`;
     }).join(' or ');
     let categorySql = `update category set productId=${result.insertId} where ${whereSql}`;
@@ -150,7 +151,25 @@ export const searchProductList = async (shopId, title) => {
         return info
     })
 }
-export const updateProduct = async (productId, updateInfo) => {
+export const updateProduct = async (productId, body) => {
+    const updateInfo = {
+        productName: body.productName,
+        productImg: body.productImg,
+        productDescript: body.productDescript,
+        productDesList: body.productDesList.join(" && "),
+        classifyId: body.classifyId,
+        status: body.status,
+        defaultCategoryId: body.defaultCategoryId,
+    };
+    const categoryList = body.categoryList;
+    //对数据进行处理，首先进行商品更新
     const upSql = updateSql('products', updateInfo, { productId });
-    return await execute(upSql);
+    const result = await execute(upSql);
+    const whereSql = categoryList.map((e) => {
+        return `categoryId=${e.categoryId}`;
+    }).join(' or ');
+    let categorySql = `update category set productId=${productId} where ${whereSql}`;
+    //添加成功后将关联规格的productId连接到新创建的商品中
+    const cateResult = await execute(categorySql);
+    return cateResult;
 }

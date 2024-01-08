@@ -36,12 +36,12 @@ router.get(`/getOrderList`, jsonParser, async (req, res, next) => {
     }
     const shopId = req.query.shopId;
     try {
+        const data = await getOrderListForShop(shopId);
         res.json({code: 0, msg: "获取成功", data: data});
     } catch (error) {
         console.error(error);
         res.json({code: -1, msg: "获取失败", data: error});
     }
-    const data = await getOrderListForShop(shopId);
 })
 
 
