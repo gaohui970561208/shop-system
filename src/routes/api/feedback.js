@@ -17,6 +17,7 @@ router.post(`/sendFeedback`, jsonParser, async (req, res, next) => {
         const data = await addFeedBack(userId, feedback);
         res.json({code: 0, msg: "提交成功,感谢您的反馈"});
     } catch (error) {
+        console.error(error);
         res.json({ode: -1, msg: "提交失败", data: error});
     }
 })

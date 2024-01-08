@@ -79,7 +79,7 @@ router.post(`/updatePassword`, jsonParser, async (req, res, next) => {
         const data = await updateUser(userId, updateBody);
         res.json({code: 0, msg: "修改成功，请重新登录"});
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.json({code: -1, msg: "修改失败", data: error});
     }
 })
@@ -109,7 +109,7 @@ router.post(`/userAvatarUpdate`, jsonParser, async (req,res,next) => {
         const data = await updateUser(userId, updateBody);
         res.json({code: 0, msg: "上传成功"});
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.json({code: -1, msg: "上传失败", data: error});
     }
 });
@@ -133,7 +133,7 @@ router.post(`/userNickNameUpdate`, jsonParser, async (req,res,next) => {
         const data = await updateUser(userId, updateBody);
         res.json({code: 0, msg: "修改成功"});
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.json({code: -1, msg: "修改失败", data: error});
     }
 });
@@ -157,7 +157,7 @@ router.post(`/userDescriptUpdate`, jsonParser, async (req,res,next) => {
         const data = await updateUser(userId, updateBody);
         res.json({code: 0, msg: "修改成功"});
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.json({code: -1, msg: "修改失败", data: error});
     }
 })
@@ -185,7 +185,7 @@ router.post(`/userPhoneUpdate`, jsonParser, async (req,res,next) => {
         const data = await updateUser(userId, updateBody);
         res.json({code: 0, msg: "修改成功"});
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.json({code: -1, msg: "修改失败", data: error});
     }
 })
@@ -202,6 +202,7 @@ router.get(`/getCartList`, jsonParser, async (req,res,next) => {
         const cartList = await getCartListByUser(userId);
         res.json({code: 0, msg: "获取成功", data: cartList});
     } catch (error) {
+        console.error(error);
         res.json({code: -1, msg: "获取失败", data: error});
     }
 })
@@ -219,6 +220,7 @@ router.post(`/deleteShoppingCart`, jsonParser, async (req, res, next) => {
         const data = await deleteCartList(userId, shopList);
         res.json({code: 0, msg: "删除成功", data: reqData});
     } catch (error) {
+        console.error(error);
         res.json({code: 0, msg: "服务器繁忙", data: error});
     }
 })

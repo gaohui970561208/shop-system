@@ -82,14 +82,11 @@ export const getOrderListForShop = async (shopId) => {
     })
 }
 export const getOrderListForUser = async (userId, status) => {
-    let sqlStr = `select * from orders where userId=${userId} order by orderId desc`;
-    if(status != -1) {
-        sqlStr += ` and status=${status}`
-    }
-    const list = await getObjList(sqlStr)
+    let sqlStr = `select * from orders where userId=${userId} ${Number(status) !== -1 ? 'and status=' + status : ''} order by orderId desc`;
+    const list = await getObjList(sqlStr);
     return list.map((e) => {
         let info = { ...e };
-        info.productList.JSON.parse(e.productList);
+        info.productList = JSON.parse(e.productList);
         return info;
     })
 }
@@ -121,4 +118,45 @@ export const getOrderInfo = async (orderId) => {
     })
     orderData.productList = list;
     return orderData;
+}
+export const payOrder = async (orderId) => {
+    const sql = updateSql('orders', { paymentStatus: 2, status: 1 }, { orderId });
+    return await execute(sql);
+}
+export const updateOrderStatus = async (orderId, status) => {
+    const sql = updateSql('orders', { status }, { orderId });
+    return await execute(sql);
+}
+export const confirmReceipt = async (orderId) => {
+    const result = await updateOrderStatus(orderId, 4);
+    const orderData = await getObj(`select * from orders where orderId=${orderId}`);
+    const price = orderData.price;
+    const upSql = `update users,shops,orders set users.profit=users.profit+${parseInt(price)} where orders.shopId=shops.shopId and shops.userId=users.userId and orders.orderId=${orderId}`;
+    return await execute(upSql);
+}
+export const orderBack = async (orderId, data) => {
+    const { backDes } = data;
+    const sql = updateSql('orders', { paymentStatus: 2, backDes }, { orderId });
+    return await execute(sql)
+}
+export const confirmBack = async (orderId) => {
+    const orderData = await getObj(`select * from orders where orderId=${orderId}`);
+    const upSql = updateSql('orders', { status: 5, backStatus: 2 }, { orderId });
+    const orderStatus = await execute(upSql);
+    const price = orderData.pirce;
+    const profitStatus = true;
+    if(orderData.status === 3 || orderData.status === 4) {
+        //如果当前为确认收货或者订单完成的状态，说明收益已经进入卖家账户，从卖家的账户减去本次退款订单的收益。
+        const profitSql =`update users,shops,orders set users.profit=(users.profit-${parseInt(price)}) where orders.shopId=shops.shopId and shops.userId=users.userId and orders.orderId=${orderId}`;
+        profitStatus = await execute(profitSql);
+    }
+    return orderStatus && profitStatus;
+}
+export const rejectBack = async (orderId) => {
+    const upSql = updateSql('orders', { status: 5, backStatus: 3 }, { orderId });
+    return await execute(upSql);
+}
+export const deleteOrder = async (orderId) => {
+    const sql = `delete from orders where orderId=${orderId}`;
+    return await execute(sql);
 }
